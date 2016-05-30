@@ -54,13 +54,15 @@ void EIO_Open(uv_work_t* req) {
   strncpy(data->path, "\\\\.\\", 4);
   strncpy(data->path + 4, data->path + 20, 10);
 
+  int shareMode = data->lock ? 0 : (FILE_SHARE_READ | FILE_SHARE_WRITE);
+
   HANDLE file = CreateFile(
     data->path,
     GENERIC_READ | GENERIC_WRITE,
-    0, // dwShareMode 0 Prevents other processes from opening if they request delete, read, or write access
+    shareMode,  // dwShareMode 0 Prevents other processes from opening if they request delete, read, or write access
     NULL,
     OPEN_EXISTING,
-    FILE_FLAG_OVERLAPPED, // allows for reading and writing at the same time and sets the handle for asynchronous I/O
+    FILE_FLAG_OVERLAPPED,  // allows for reading and writing at the same time and sets the handle for asynchronous I/O
     NULL
   );
   if (file == INVALID_HANDLE_VALUE) {

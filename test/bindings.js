@@ -27,6 +27,7 @@ var defaultPortOpenOptions = {
   dataBits: 8,
   stopBits: 1,
   bufferSize: 64 * 1024,
+  lock: true,
   platformOptions: {},
   // required for windows
   dataCallback: function() {},
@@ -81,6 +82,37 @@ describe('SerialPortBinding', function() {
         });
       });
     }
+
+    // it('can lock the port', function(done) {
+    //   SerialPortBinding.open(testPort, defaultPortOpenOptions, function(err, fd) {
+    //     assert.isNull(err);
+    //     assert.isNumber(fd);
+    //     SerialPortBinding.open(testPort, defaultPortOpenOptions, function(err, badFd) {
+    //       SerialPortBinding.close(fd, function(){
+    //         assert.instanceOf(err, Error);
+    //         assert.isUndefined(badFd);
+    //         done();
+    //       });
+    //     });
+    //   });
+    // });
+
+    it('can share the port', function(done) {
+      var noLock = assign({}, defaultPortOpenOptions, {lock: false});
+      SerialPortBinding.open(testPort, noLock, function(err, fd) {
+        assert.isNull(err);
+        assert.isNumber(fd);
+        SerialPortBinding.open(testPort, defaultPortOpenOptions, function(err, otherFd) {
+          assert.isNull(err);
+          assert.isNumber(otherFd);
+          SerialPortBinding.close(fd, function(err){
+            assert.isNull(err);
+            SerialPortBinding.close(otherFd, done);
+          });
+        });
+      });
+
+    });
   });
 
   describe('#close', function() {
